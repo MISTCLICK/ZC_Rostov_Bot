@@ -39,7 +39,8 @@ export default class SetPermaBookCommand extends Command {
           prompt: "Пожалуйста тэгните канал для перманентного отображения УВД бронирований.",
           type: "string"
         }
-      ]
+      ],
+      userPermissions: ["ADMINISTRATOR"]
     });
   }
 

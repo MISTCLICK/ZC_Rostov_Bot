@@ -10,12 +10,15 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const api_1 = __importDefault(require("./api"));
 const authenticationScript_1 = __importDefault(require("./schema/authenticationScript"));
 const cfg_json_1 = require("./security/cfg.json");
+const cleanBookings_1 = __importDefault(require("./util/cleanBookings"));
 function createServer() {
     let app = express_1.default();
     app.use(express_1.default.json());
     app.use(cors_1.default());
     app.use(helmet_1.default());
     app.use('/v1', api_1.default);
+    //Automatic action execution
+    setInterval(() => cleanBookings_1.default(), 1000 * 60);
     app.all('/', (_req, res) => res.status(200).send('Hallo!'));
     app.post('/access', async (req, res) => {
         const source = req.body.source;

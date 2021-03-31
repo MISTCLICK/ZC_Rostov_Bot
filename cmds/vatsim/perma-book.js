@@ -23,7 +23,8 @@ class SetPermaBookCommand extends discord_js_commando_1.Command {
                     prompt: "Пожалуйста тэгните канал для перманентного отображения УВД бронирований.",
                     type: "string"
                 }
-            ]
+            ],
+            userPermissions: ["ADMINISTRATOR"]
         });
     }
     async run(message, { channelTag }) {

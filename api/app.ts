@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import API from './api';
 import authenticationScript from './schema/authenticationScript';
 import { allowedSources } from './security/cfg.json';
+import cleanBooks from './util/cleanBookings';
 
 export default function createServer() {
   let app = express();
@@ -13,6 +14,9 @@ export default function createServer() {
   app.use(cors());
   app.use(helmet());
   app.use('/v1', API);
+
+  //Automatic action execution
+  setInterval(() => cleanBooks(), 1000 * 60);
   
   app.all('/', (_req, res) => res.status(200).send('Hallo!'));
   app.post('/access', async (req, res) => {

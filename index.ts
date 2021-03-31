@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import path from 'path';
 import createServer from './api/app';
 import autoUpdateBooks from './util/autoUpdateBooks';
+import autoNotifyATC from './util/autoNotifyATC';
 import { token, mongoURI } from './config.json';
 
 const client = new Commando.CommandoClient({
@@ -33,6 +34,7 @@ client.once('ready', async () => {
 
   //Automatic action functions
   autoUpdateBooks(client);
+  autoNotifyATC(client);
 
   console.log(`${client.user?.username} is ready to perform their duties.`);
 });
