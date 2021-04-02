@@ -34,7 +34,7 @@ export default class ViewBooks extends Command {
   async run(message: CommandoMessage) {
     let res = await axios.create({
       headers: localAPIheaders,
-      baseURL: 'http://localhost:5000'
+      baseURL: 'https://api.veuroexpress.org:5000'
     }).get('/v1/bookings');
 
     let bookingsText = '**Список УВД бронирований в ЗЦ Ростов**\n\n';

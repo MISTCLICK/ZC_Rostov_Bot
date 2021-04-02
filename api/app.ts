@@ -4,8 +4,10 @@ import helmet from 'helmet';
 import bcrypt from 'bcryptjs';
 import API from './api';
 import authenticationScript from './schema/authenticationScript';
-import { allowedSources } from './security/cfg.json';
 import cleanBooks from './util/cleanBookings';
+import fs from 'fs';
+import https from 'https';
+import { allowedSources } from './security/cfg.json';
 
 export default function createServer() {
   let app = express();
@@ -53,5 +55,10 @@ export default function createServer() {
     });
   });
   
-  app.listen(5000, () => console.log('Express server running on port 5000...'));
+  https.globalAgent.options.ca = require('ssl-root-cas').create();
+
+  https.createServer({
+    key: fs.readFileSync('/var/www/httpd-cert/www-root/api.veuroexpress.org_le2.key'),
+    cert: fs.readFileSync('/var/www/httpd-cert/www-root/server.pem'),
+  }, app).listen(5000, () => console.log('Server running on port 5000...'));
 }

@@ -1,5 +1,6 @@
 import Commando, { CommandoClient, CommandoMessage } from 'discord.js-commando';
 import axios from 'axios';
+import langScript from '../../schema/langSchema';
 import { notamkey, mainColor, mainFooter } from '../../config.json';
 import { MessageEmbed } from 'discord.js';
 
@@ -9,11 +10,11 @@ export default class NOTAMcommand extends Commando.Command {
       name: 'notam',
       group: 'aviation',
       memberName: 'notam',
-      description: 'A command to get NOTAM of a certain airport.',
+      description: 'Выдаёт НОТАМы по аэропорту. | A command to get NOTAM of a certain airport.',
       args: [
         {
           key: 'airport',
-          prompt: "What airport's metar would you like to get?",
+          prompt: "НОТАМы какого аэропорта вы хотели бы получить? | What airport's metar would you like to get?",
           type: 'string',
           validate: (text: string) => text.length === 4
         }
@@ -24,6 +25,7 @@ export default class NOTAMcommand extends Commando.Command {
   }
 
   async run(message: CommandoMessage, args: any) {
+    const currLang = await langScript.findOne({ ver: 0 });
     let getNOTAM = async () => {
       let airportString = args.airport;
       let airportCode = airportString.toUpperCase();
@@ -45,7 +47,7 @@ export default class NOTAMcommand extends Commando.Command {
 
     //@ts-ignore
     if (notamValue.data[0].all) {
-      message.reply('sent you a DM with information.');
+      message.reply(currLang.lang === 0 ? 'отсылаю вам информацию в ЛС.' : 'sent you a DM with information.');
     }
 
     return null;

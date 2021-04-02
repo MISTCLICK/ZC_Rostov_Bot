@@ -17,7 +17,7 @@ class activateTokenCommand extends discord_js_commando_1.Command {
         });
     }
     async run(message) {
-        let res = await axios_1.default.post('http://localhost:5000/access', {
+        let res = await axios_1.default.post('https://api.veuroexpress.org:5000/access', {
             source: message.guild.id
         });
         if (res.data.success) {

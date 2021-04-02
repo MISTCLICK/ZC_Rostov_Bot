@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_commando_1 = __importDefault(require("discord.js-commando"));
 const axios_1 = __importDefault(require("axios"));
+const langSchema_1 = __importDefault(require("../../schema/langSchema"));
 const config_json_1 = require("../../config.json");
 const discord_js_1 = require("discord.js");
 class NOTAMcommand extends discord_js_commando_1.default.Command {
@@ -13,11 +14,11 @@ class NOTAMcommand extends discord_js_commando_1.default.Command {
             name: 'notam',
             group: 'aviation',
             memberName: 'notam',
-            description: 'A command to get NOTAM of a certain airport.',
+            description: 'Выдаёт НОТАМы по аэропорту. | A command to get NOTAM of a certain airport.',
             args: [
                 {
                     key: 'airport',
-                    prompt: "What airport's metar would you like to get?",
+                    prompt: "НОТАМы какого аэропорта вы хотели бы получить? | What airport's metar would you like to get?",
                     type: 'string',
                     validate: (text) => text.length === 4
                 }
@@ -27,6 +28,7 @@ class NOTAMcommand extends discord_js_commando_1.default.Command {
         });
     }
     async run(message, args) {
+        const currLang = await langSchema_1.default.findOne({ ver: 0 });
         let getNOTAM = async () => {
             let airportString = args.airport;
             let airportCode = airportString.toUpperCase();
@@ -46,7 +48,7 @@ class NOTAMcommand extends discord_js_commando_1.default.Command {
         }
         //@ts-ignore
         if (notamValue.data[0].all) {
-            message.reply('sent you a DM with information.');
+            message.reply(currLang.lang === 0 ? 'отсылаю вам информацию в ЛС.' : 'sent you a DM with information.');
         }
         return null;
     }

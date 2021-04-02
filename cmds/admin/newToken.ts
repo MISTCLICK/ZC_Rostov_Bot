@@ -26,7 +26,7 @@ export default class activateTokenCommand extends Command {
   }
 
   async run(message: CommandoMessage) {
-    let res = await axios.post<any, AxiosResponse<APIresponse | ErrorAPIresponse>>('http://localhost:5000/access', {
+    let res = await axios.post<any, AxiosResponse<APIresponse | ErrorAPIresponse>>('https://api.veuroexpress.org:5000/access', {
       source: message.guild.id
     });
 

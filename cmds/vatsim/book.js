@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
 const authSchema_1 = __importDefault(require("../../schema/authSchema"));
+const langSchema_1 = __importDefault(require("../../schema/langSchema"));
 const config_json_1 = require("../../config.json");
 const discord_js_1 = require("discord.js");
 const discord_js_commando_1 = require("discord.js-commando");
@@ -27,12 +28,20 @@ class BookCommand extends discord_js_commando_1.Command {
         });
     }
     async run(message, args) {
+        const currLang = await langSchema_1.default.findOne({ ver: 0 });
         const userCheck = await authSchema_1.default.findOne({
             discordID: message.author.id,
             guildID: message.guild.id
         });
-        if (!userCheck) {
-            return message.reply('Вы не имеете доступа к данной команде!');
+        if (!userCheck ||
+            (!message.member?.roles.cache.some(role => role.name === 'Guest ATC') &&
+                !message.member?.roles.cache.some(role => role.name === 'ATC') &&
+                !message.member?.roles.cache.some(role => role.name === 'Student') &&
+                !message.member?.roles.cache.some(role => role.name === 'ATC Trainee') &&
+                !message.member?.roles.cache.some(role => role.name === 'Mentor') &&
+                !message.member?.roles.cache.some(role => role.name === 'Начальник РПИ') &&
+                !message.member?.roles.cache.some(role => role.name === 'Администраторы'))) {
+            return message.reply(currLang.lang === 0 ? 'Вы не имеете доступа к данной команде!' : 'You do not have access to this command!');
         }
         const filter = (m) => m.author.id === message.author.id;
         //@ts-ignore
@@ -42,23 +51,26 @@ class BookCommand extends discord_js_commando_1.Command {
         });
         const apiInstance = axios_1.default.create({
             headers: config_json_1.localAPIheaders,
-            baseURL: 'http://localhost:5000'
+            baseURL: 'https://api.veuroexpress.org:5000'
         });
         switch (args.action) {
             case "add":
-                message.reply('Пожалуйста предоставьте информацию о брони в формате:\n`1433887 - UBBB_APP - 31.01.2020 12:00:00 - 31.01.2020 13:00:00`\n`VATSIM CID - Позиция - Время начала смены - Время конца смены`');
+                message.reply(currLang.lang === 0 ? 'Пожалуйста предоставьте информацию о брони в формате:\n`1433887 - UBBB_APP - 31.01.2020 12:00:00 - 31.01.2020 13:00:00`\nИЛИ\n`1381778 - UBBB_APP - 03.04.2021 15:00 - 18:00`\n`VATSIM CID - Позиция - Время начала смены - Время конца смены`' : 'Please provide your booking information in one of the following formats:\n`1433887 - UBBB_APP - 31.01.2020 12:00:00 - 31.01.2020 13:00:00`\nOR\n`1381778 - UBBB_APP - 03.04.2021 15:00 - 18:00`\n`VATSIM CID - Position - Shift start time - Shift end time`');
                 collector.on('end', async (collected) => {
                     if (collected == null)
                         return;
                     const collectedArr = collected.array();
                     const bookingData = collectedArr[0].content.split('-');
                     //parameters
-                    const cid = bookingData[0].trim();
-                    const pos = bookingData[1].trim();
-                    const from = bookingData[2].trim();
-                    const till = bookingData[3].trim();
+                    let cid = bookingData[0].trim();
+                    let pos = bookingData[1].trim();
+                    let from = bookingData[2].trim();
+                    let till = bookingData[3].trim();
+                    if (till.length === 5) {
+                        till = from.split(' ')[0] + ' ' + bookingData[3].trim();
+                    }
                     if (cid !== userCheck.cid) {
-                        return message.reply('Чтобы избежать проблем и претензий, вы не можете забронировать за другого члена сети ВАТСИМ.');
+                        return message.reply(currLang.lang === 0 ? 'Чтобы избежать проблем и претензий, вы не можете забронировать за другого члена сети ВАТСИМ.' : 'To avoid any negative consequences, you cannot book for any other VATSIM member, other than yourself.');
                     }
                     let res = await apiInstance.post('/v1/bookings', {
                         cid,
@@ -67,12 +79,12 @@ class BookCommand extends discord_js_commando_1.Command {
                         till
                     });
                     if (res.data.success) {
-                        return message.reply('Бронь успешно добавлена!');
+                        return message.reply(currLang.lang === 0 ? 'Бронь успешно добавлена!' : 'Booking successfully created!');
                     }
                 });
                 break;
             case "remove":
-                message.reply('Пожалуйста предоставьте ID брони.');
+                message.reply(currLang.lang === 0 ? 'Пожалуйста предоставьте ID брони.' : 'Please provide booking\'s ID.');
                 collector.on('end', async (collected) => {
                     if (collected == null)
                         return;
@@ -82,18 +94,22 @@ class BookCommand extends discord_js_commando_1.Command {
                         data: { ver: bookingID }
                     });
                     if (res.data.success) {
-                        return message.reply('Операция успешно выполнена!');
+                        return message.reply(currLang.lang === 0 ? 'Операция успешно выполнена!' : 'Operation successfully completed.');
                     }
-                    return message.reply('Ошибка удаления брони!');
+                    return message.reply(currLang.lang === 0 ? 'Ошибка удаления брони!' : 'An error occurred while deleting your booking.');
                 });
                 break;
             case "edit":
-                message.reply('Чтобы изменить информацию о брони, пожалуйста предоставьте информацию о брони в формате:\n`0 - URRV_CTR - 31.01.2020 12:00:00 - 31.01.2020 13:00:00`\n`ID Брони - Позиция - Время начала смены - Время конца смены`');
+                message.reply(currLang.lang === 0 ? 'Чтобы изменить информацию о брони, пожалуйста предоставьте информацию о брони в формате:\n`0 - URRV_CTR - 31.01.2020 12:00:00 - 31.01.2020 13:00:00`\n`ID Брони - Позиция - Время начала смены - Время конца смены`' : 'To edit the information about your booking, please provide the booking information in the following format:\n`0 - URRV_CTR - 31.01.2020 12:00:00 - 31.01.2020 13:00:00`\n`Booking ID - Position - Shift start time - Shift end time`');
                 collector.on('end', async (collected) => {
                     if (collected == null)
                         return;
                     const collectedArr = collected.array();
                     const bookingData = collectedArr[0].content.split('-');
+                    let allbooks = await apiInstance.get('/v1/bookings');
+                    if (allbooks.data.bookings.find((booking) => booking.ver === parseInt(bookingData[0].trim())).cid !== userCheck.cid) {
+                        return message.reply(currLang.lang === 0 ? 'Вы не можете измеить букинг другого человека.' : 'You cannot edit someone else\'s booking.');
+                    }
                     //parameters
                     const ver = parseInt(bookingData[0].trim());
                     const pos = bookingData[1].trim();
@@ -107,14 +123,36 @@ class BookCommand extends discord_js_commando_1.Command {
                         till
                     });
                     if (res.data.success) {
-                        return message.reply('Бронь успешно изменена!');
+                        return message.reply(currLang.lang === 0 ? 'Бронь успешно изменена!' : 'Booking successfully edited.');
                     }
-                    return message.reply('Ошибка изменения брони!');
+                    return message.reply(currLang.lang === 0 ? 'Ошибка изменения брони!' : 'An error occurred while editing your booking.');
                 });
                 break;
+            case '':
+                return message.reply(currLang.lang === 0 ? 'Предоставьте тип действия.' : 'Please provide the type of action you\'d like to perform.');
             default:
                 collector.emit('end');
-                message.reply('Пожалуйста предоставьте метод выполнения команды. `add` - новая бронь, `remove` - удалить бронь, `edit` - именить бронь.');
+                const bookingData = args.action.split('-');
+                //parameters
+                let cid = bookingData[0].trim();
+                let pos = bookingData[1].trim();
+                let from = bookingData[2].trim();
+                let till = bookingData[3].trim();
+                if (till.length === 5) {
+                    till = from.split(' ')[0] + ' ' + bookingData[3].trim();
+                }
+                if (cid !== userCheck.cid) {
+                    return message.reply(currLang.lang === 0 ? 'Чтобы избежать проблем и претензий, вы не можете забронировать за другого члена сети ВАТСИМ.' : 'To avoid any negative consequences, you cannot book for any other VATSIM member, other than yourself.');
+                }
+                let res = await apiInstance.post('/v1/bookings', {
+                    cid,
+                    pos,
+                    from,
+                    till
+                });
+                if (res.data.success) {
+                    return message.reply(currLang.lang === 0 ? 'Бронь успешно добавлена!' : 'Booking successfully created!');
+                }
         }
         return null;
     }

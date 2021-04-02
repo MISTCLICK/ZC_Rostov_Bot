@@ -51,7 +51,7 @@ export default class SetPermaBookCommand extends Command {
 
     let res = await axios.create({
       headers: localAPIheaders,
-      baseURL: 'http://localhost:5000'
+      baseURL: 'https://api.veuroexpress.org:5000'
     }).get('/v1/bookings');
 
     let bookingsText = `**Список УВД бронирований в ЗЦ Ростов**\nДанные от ${moment(new Date()).utc().format('DD.MM.YYYY | HH:mm:ss')} Z\n\n`;

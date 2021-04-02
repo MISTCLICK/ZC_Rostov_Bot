@@ -4,11 +4,13 @@ import path from 'path';
 import createServer from './api/app';
 import autoUpdateBooks from './util/autoUpdateBooks';
 import autoNotifyATC from './util/autoNotifyATC';
+import memberJoinLeave from './util/memberJL';
+import autoUnmute from './util/auto-unmute';
 import { token, mongoURI } from './config.json';
 
 const client = new Commando.CommandoClient({
   owner: ['349553169035952140'],
-  commandPrefix: '?'
+  commandPrefix: '!'
 });
 
 client.once('ready', async () => {
@@ -35,6 +37,8 @@ client.once('ready', async () => {
   //Automatic action functions
   autoUpdateBooks(client);
   autoNotifyATC(client);
+  autoUnmute(client);
+  memberJoinLeave(client);
 
   console.log(`${client.user?.username} is ready to perform their duties.`);
 });

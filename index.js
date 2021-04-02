@@ -9,10 +9,12 @@ const path_1 = __importDefault(require("path"));
 const app_1 = __importDefault(require("./api/app"));
 const autoUpdateBooks_1 = __importDefault(require("./util/autoUpdateBooks"));
 const autoNotifyATC_1 = __importDefault(require("./util/autoNotifyATC"));
+const memberJL_1 = __importDefault(require("./util/memberJL"));
+const auto_unmute_1 = __importDefault(require("./util/auto-unmute"));
 const config_json_1 = require("./config.json");
 const client = new discord_js_commando_1.default.CommandoClient({
     owner: ['349553169035952140'],
-    commandPrefix: '?'
+    commandPrefix: '!'
 });
 client.once('ready', async () => {
     if (!config_json_1.mongoURI)
@@ -39,6 +41,8 @@ client.once('ready', async () => {
     //Automatic action functions
     autoUpdateBooks_1.default(client);
     autoNotifyATC_1.default(client);
+    auto_unmute_1.default(client);
+    memberJL_1.default(client);
     console.log(`${client.user?.username} is ready to perform their duties.`);
 });
 client.registry

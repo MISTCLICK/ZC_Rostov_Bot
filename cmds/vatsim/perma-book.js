@@ -33,7 +33,7 @@ class SetPermaBookCommand extends discord_js_commando_1.Command {
         const guildID = message.guild.id;
         let res = await axios_1.default.create({
             headers: config_json_1.localAPIheaders,
-            baseURL: 'http://localhost:5000'
+            baseURL: 'https://api.veuroexpress.org:5000'
         }).get('/v1/bookings');
         let bookingsText = `**Список УВД бронирований в ЗЦ Ростов**\nДанные от ${moment_1.default(new Date()).utc().format('DD.MM.YYYY | HH:mm:ss')} Z\n\n`;
         if (res.data.bookings) {

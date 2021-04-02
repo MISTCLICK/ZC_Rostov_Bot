@@ -9,8 +9,10 @@ const helmet_1 = __importDefault(require("helmet"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const api_1 = __importDefault(require("./api"));
 const authenticationScript_1 = __importDefault(require("./schema/authenticationScript"));
-const cfg_json_1 = require("./security/cfg.json");
 const cleanBookings_1 = __importDefault(require("./util/cleanBookings"));
+const fs_1 = __importDefault(require("fs"));
+const https_1 = __importDefault(require("https"));
+const cfg_json_1 = require("./security/cfg.json");
 function createServer() {
     let app = express_1.default();
     app.use(express_1.default.json());
@@ -49,6 +51,10 @@ function createServer() {
             message: 'Your token has been created, but not activated yet. You\'ll be notified, when your token will be ready to use.'
         });
     });
-    app.listen(5000, () => console.log('Express server running on port 5000...'));
+    https_1.default.globalAgent.options.ca = require('ssl-root-cas').create();
+    https_1.default.createServer({
+        key: fs_1.default.readFileSync('/var/www/httpd-cert/www-root/api.veuroexpress.org_le2.key'),
+        cert: fs_1.default.readFileSync('/var/www/httpd-cert/www-root/server.pem'),
+    }, app).listen(5000, () => console.log('Server running on port 5000...'));
 }
 exports.default = createServer;
