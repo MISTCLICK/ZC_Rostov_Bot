@@ -60,7 +60,10 @@ class BookCommand extends discord_js_commando_1.Command {
                     if (collected == null)
                         return;
                     const collectedArr = collected.array();
-                    const bookingData = collectedArr[0].content.split('-');
+                    const bookingData = collectedArr[0].content.split(' - ');
+                    if (bookingData.length < 4) {
+                        return message.reply(currLang.lang === 0 ? 'Ошибка формата. Пожалуйста используйте правильный формат.' : 'Booking format error. Please use the right booking format.');
+                    }
                     //parameters
                     let cid = bookingData[0].trim();
                     let pos = bookingData[1].trim();
@@ -105,7 +108,10 @@ class BookCommand extends discord_js_commando_1.Command {
                     if (collected == null)
                         return;
                     const collectedArr = collected.array();
-                    const bookingData = collectedArr[0].content.split('-');
+                    const bookingData = collectedArr[0].content.split(' - ');
+                    if (bookingData.length < 4) {
+                        return message.reply(currLang.lang === 0 ? 'Ошибка формата. Пожалуйста используйте правильный формат.' : 'Booking format error. Please use the right booking format.');
+                    }
                     let allbooks = await apiInstance.get('/v1/bookings');
                     if (allbooks.data.bookings.find((booking) => booking.ver === parseInt(bookingData[0].trim())).cid !== userCheck.cid) {
                         return message.reply(currLang.lang === 0 ? 'Вы не можете измеить букинг другого человека.' : 'You cannot edit someone else\'s booking.');
@@ -132,7 +138,10 @@ class BookCommand extends discord_js_commando_1.Command {
                 return message.reply(currLang.lang === 0 ? 'Предоставьте тип действия.' : 'Please provide the type of action you\'d like to perform.');
             default:
                 collector.emit('end');
-                const bookingData = args.action.split('-');
+                const bookingData = args.action.split(' - ');
+                if (bookingData.length < 4) {
+                    return message.reply(currLang.lang === 0 ? 'Ошибка формата. Пожалуйста используйте правильный формат.' : 'Booking format error. Please use the right booking format.');
+                }
                 //parameters
                 let cid = bookingData[0].trim();
                 let pos = bookingData[1].trim();

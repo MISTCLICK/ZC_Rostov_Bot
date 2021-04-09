@@ -48,12 +48,17 @@ export default async function updateBooks(client: CommandoClient) {
   
       if (res.data.bookings) {
         bookingsText += 'ID Брони / Имя Диспетчера и CID / Позиция УВД / Начало смены / Конец смены\n```\n';
-        for (const book of res.data.bookings) {
+        for (const book of res.data.bookings.filter((book: any) => !book.pos.startsWith('UM'))) {
           const thisATC = await authScript.findOne({
             cid: book.cid
           });
-          let VATmember = await axios.get<any, AxiosResponse<vatsimData>>(`https://api.vatsim.net/api/ratings/${book.cid}/`);
-          bookingsText += thisATC ? `${book.ver} | ${thisATC?.full_vatsim_data.name_first} ${thisATC?.full_vatsim_data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n` : `${book.ver} | ${VATmember.data.name_first} ${VATmember.data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+          if (thisATC) {
+            bookingsText += `${book.ver} | ${thisATC?.full_vatsim_data.name_first} ${thisATC?.full_vatsim_data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+          } else {
+            let VATmember = await axios.get<any, AxiosResponse<vatsimData>>(`https://api.vatsim.net/api/ratings/${book.cid}/`);
+            bookingsText += `${book.ver} | ${VATmember.data.name_first} ${VATmember.data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+          }
+          
         }
         bookingsText += '```';
       } else {

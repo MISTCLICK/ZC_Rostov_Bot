@@ -60,7 +60,7 @@ API.post('/bookings', async (req, res) => {
     pos,
     from,
     till,
-    ver: (await bookingScript.find()).length
+    ver: (await bookingScript.count()) + 1
   });
 
   await newBooking.save().catch((err) => {

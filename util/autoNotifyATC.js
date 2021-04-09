@@ -8,6 +8,7 @@ const axios_1 = __importDefault(require("axios"));
 const atcNotifySchema_1 = __importDefault(require("../schema/atcNotifySchema"));
 const rostovOnlineATCschema_1 = __importDefault(require("../schema/rostovOnlineATCschema"));
 const moment_1 = __importDefault(require("moment"));
+const discord_js_1 = require("discord.js");
 async function autoNotifyATC(client) {
     setInterval(async () => {
         let APIinstance = axios_1.default.create({
@@ -46,8 +47,13 @@ async function autoNotifyATC(client) {
                 if (!oldATClist.find(station => station === currentATClist[i])) {
                     for (const guildSetting of guildData) {
                         const channel = client.channels.cache.get(guildSetting.channelID);
+                        const atcOnlineEmbed = new discord_js_1.MessageEmbed()
+                            .setColor('#00ff04')
+                            .setFooter(config_json_1.mainFooter)
+                            .setAuthor(`${currentATClist[i]} онлайн!`, client.user?.displayAvatarURL())
+                            .setDescription(`**${onlineStations.data.result[currentATClist[i]].name}** открыл позицию УВД **${currentATClist[i]}**\n${moment_1.default(new Date()).utc().format('HH:mm')}z\nЧастота **${onlineStations.data.result[currentATClist[i]].frequency}**`);
                         //@ts-ignore
-                        channel?.send(`**${onlineStations.data.result[currentATClist[i]].realname}** открыл позицию УВД **${currentATClist[i]}** в ${moment_1.default(new Date()).utc().format('HH:mm')}z на частоте **${onlineStations.data.result[currentATClist[i]].frequency}**`);
+                        channel?.send(atcOnlineEmbed);
                     }
                 }
             }
@@ -56,8 +62,13 @@ async function autoNotifyATC(client) {
                 if (!currentATClist.find(station => station === oldATClist[j])) {
                     for (const guildSetting of guildData) {
                         const channel = client.channels.cache.get(guildSetting.channelID);
+                        const atcOfflineEmbed = new discord_js_1.MessageEmbed()
+                            .setColor('#ff0000')
+                            .setFooter(config_json_1.mainFooter)
+                            .setAuthor(`${oldATClist[j]} офлайн!`, client.user?.displayAvatarURL())
+                            .setDescription(`Позиция УВД **${oldATClist[j]}** (${prevStations.result[oldATClist[j]].name}) была закрыта\n${moment_1.default(new Date()).utc().format('HH:mm')}z`);
                         //@ts-ignore
-                        channel?.send(`Позиция УВД **${oldATClist[j]}** (${prevStations.result[oldATClist[j]].realname}) была закрыта в ${moment_1.default(new Date()).utc().format('HH:mm')}z`);
+                        channel?.send(atcOfflineEmbed);
                     }
                 }
             }

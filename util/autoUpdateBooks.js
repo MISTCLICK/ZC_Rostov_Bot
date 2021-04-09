@@ -34,12 +34,17 @@ async function updateBooks(client) {
             let bookingsText = `**Список УВД бронирований в ЗЦ Ростов**\nДанные от ${moment_1.default(new Date()).utc().format('DD.MM.YYYY | HH:mm:ss')} Z\n\n`;
             if (res.data.bookings) {
                 bookingsText += 'ID Брони / Имя Диспетчера и CID / Позиция УВД / Начало смены / Конец смены\n```\n';
-                for (const book of res.data.bookings) {
+                for (const book of res.data.bookings.filter((book) => !book.pos.startsWith('UM'))) {
                     const thisATC = await authSchema_1.default.findOne({
                         cid: book.cid
                     });
-                    let VATmember = await axios_1.default.get(`https://api.vatsim.net/api/ratings/${book.cid}/`);
-                    bookingsText += thisATC ? `${book.ver} | ${thisATC?.full_vatsim_data.name_first} ${thisATC?.full_vatsim_data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n` : `${book.ver} | ${VATmember.data.name_first} ${VATmember.data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+                    if (thisATC) {
+                        bookingsText += `${book.ver} | ${thisATC?.full_vatsim_data.name_first} ${thisATC?.full_vatsim_data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+                    }
+                    else {
+                        let VATmember = await axios_1.default.get(`https://api.vatsim.net/api/ratings/${book.cid}/`);
+                        bookingsText += `${book.ver} | ${VATmember.data.name_first} ${VATmember.data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+                    }
                 }
                 bookingsText += '```';
             }
