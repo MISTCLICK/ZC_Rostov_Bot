@@ -14,7 +14,7 @@ async function autoNotifyATC(client) {
         let APIinstance = axios_1.default.create({
             headers: {
                 "X-API-Key": config_json_1.ukraineAPIkey,
-                "filter": "^UR.+_.+$|^UG.+_.+$|^UB.+_.+$|^UD.+_.+$|^UKF.+_.+$|^SIP_.+$|^RU-SC.+FSS$"
+                "filter": "^UR.+_.+$|^UG.+_.+$|^UB.+_.+$|^UD.+_.+$|^UKF.+_.+$|^SIP_.+$|^RU-SC.+FSS$|^ROV.+$"
             },
             baseURL: 'https://api.vacc-ua.org'
         });
@@ -35,11 +35,11 @@ async function autoNotifyATC(client) {
             let currentATClist = [];
             let oldATClist = [];
             for (const station in onlineStations.data.result) {
-                if (!station.endsWith('ATIS'))
+                if (!station.endsWith('ATIS') && !station.endsWith('OBS'))
                     currentATClist.push(station);
             }
             for (const station in prevStations.result) {
-                if (!station.endsWith('ATIS'))
+                if (!station.endsWith('ATIS') && !station.endsWith('OBS'))
                     oldATClist.push(station);
             }
             //Check if new ATC logged on

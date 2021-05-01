@@ -27,7 +27,7 @@ API.all('*', async (req, res, next) => {
 API.all('/', (_req, res) => res.status(200).send('Hallo!'));
 
 API.get('/bookings', async (_req, res) => {
-  const allBooks = await bookingScript.find();
+  const allBooks = await bookingScript.find().sort({ ver: 1 });
   if (allBooks.length < 1) {
     return res.status(200).json({
       success: true,
@@ -55,12 +55,16 @@ API.post('/bookings', async (req, res) => {
     });
   }
 
+  //Arbitrary vars and actions
+  let myArr: any[] = [];
+  (await bookingScript.find()).forEach(booking => myArr.push(booking.ver));
+
   const newBooking = new bookingScript({
     cid,
     pos,
     from,
     till,
-    ver: (await bookingScript.count()) + 1
+    ver: myArr.length > 0 ? Math.max.apply(null, myArr) + 1 : 1
   });
 
   await newBooking.save().catch((err) => {

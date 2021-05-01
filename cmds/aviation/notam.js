@@ -47,8 +47,12 @@ class NOTAMcommand extends discord_js_commando_1.default.Command {
             message.author.send(notamember);
         }
         //@ts-ignore
+        if (notamValue.data.length < 1) {
+            return message.reply(currLang.lang === 0 ? 'Данные не найдены.' : 'No data found.');
+        }
+        //@ts-ignore
         if (notamValue.data[0].all) {
-            message.reply(currLang.lang === 0 ? 'отсылаю вам информацию в ЛС.' : 'sent you a DM with information.');
+            return message.reply(currLang.lang === 0 ? 'отсылаю вам информацию в ЛС.' : 'sent you a DM with information.');
         }
         return null;
     }

@@ -93,6 +93,10 @@ class BookCommand extends discord_js_commando_1.Command {
                         return;
                     const collectedArr = collected.array();
                     const bookingID = parseInt(collectedArr[0].content);
+                    let allbooks = await apiInstance.get('/v1/bookings');
+                    if (allbooks.data.bookings.find((booking) => booking.ver === bookingID).cid !== userCheck.cid) {
+                        return message.reply(currLang.lang === 0 ? 'Вы не можете измеить букинг другого человека.' : 'You cannot edit someone else\'s booking.');
+                    }
                     let res = await apiInstance.delete('/v1/bookings', {
                         data: { ver: bookingID }
                     });
