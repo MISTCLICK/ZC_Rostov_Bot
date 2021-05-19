@@ -9,6 +9,7 @@ const bookingSchema = new mongoose_1.default.Schema({
     pos: { type: String, required: true },
     from: { type: String, required: true },
     till: { type: String, required: true },
-    ver: { type: Number, required: true }
+    ver: { type: Number, required: true },
+    vatbook_id: { type: String, required: true },
 });
 exports.default = mongoose_1.default.model('bookings', bookingSchema);

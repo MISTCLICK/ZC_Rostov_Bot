@@ -106,38 +106,6 @@ class BookCommand extends discord_js_commando_1.Command {
                     return message.reply(currLang.lang === 0 ? 'Ошибка удаления брони!' : 'An error occurred while deleting your booking.');
                 });
                 break;
-            case "edit":
-                message.reply(currLang.lang === 0 ? 'Чтобы изменить информацию о брони, пожалуйста предоставьте информацию о брони в формате:\n`0 - URRV_CTR - 31.01.2020 12:00:00 - 31.01.2020 13:00:00`\n`ID Брони - Позиция - Время начала смены - Время конца смены`' : 'To edit the information about your booking, please provide the booking information in the following format:\n`0 - URRV_CTR - 31.01.2020 12:00:00 - 31.01.2020 13:00:00`\n`Booking ID - Position - Shift start time - Shift end time`');
-                collector.on('end', async (collected) => {
-                    if (collected == null)
-                        return;
-                    const collectedArr = collected.array();
-                    const bookingData = collectedArr[0].content.split(' - ');
-                    if (bookingData.length < 4) {
-                        return message.reply(currLang.lang === 0 ? 'Ошибка формата. Пожалуйста используйте правильный формат.' : 'Booking format error. Please use the right booking format.');
-                    }
-                    let allbooks = await apiInstance.get('/v1/bookings');
-                    if (allbooks.data.bookings.find((booking) => booking.ver === parseInt(bookingData[0].trim())).cid !== userCheck.cid) {
-                        return message.reply(currLang.lang === 0 ? 'Вы не можете измеить букинг другого человека.' : 'You cannot edit someone else\'s booking.');
-                    }
-                    //parameters
-                    const ver = parseInt(bookingData[0].trim());
-                    const pos = bookingData[1].trim();
-                    const from = bookingData[2].trim();
-                    const till = bookingData[3].trim();
-                    let res = await apiInstance.patch('/v1/bookings', {
-                        ver,
-                        cid: userCheck.cid,
-                        pos,
-                        from,
-                        till
-                    });
-                    if (res.data.success) {
-                        return message.reply(currLang.lang === 0 ? 'Бронь успешно изменена!' : 'Booking successfully edited.');
-                    }
-                    return message.reply(currLang.lang === 0 ? 'Ошибка изменения брони!' : 'An error occurred while editing your booking.');
-                });
-                break;
             case '':
                 return message.reply(currLang.lang === 0 ? 'Предоставьте тип действия.' : 'Please provide the type of action you\'d like to perform.');
             default:

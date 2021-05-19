@@ -6,6 +6,7 @@ interface bookingInt extends mongoose.Document {
   from: string;
   till: string;
   ver: number;
+  vatbook_id: string;
 }
 
 const bookingSchema = new mongoose.Schema({
@@ -13,7 +14,8 @@ const bookingSchema = new mongoose.Schema({
   pos: { type: String, required: true },
   from: { type: String, required: true },
   till: { type: String, required: true },
-  ver: { type: Number, required: true }
+  ver: { type: Number, required: true },
+  vatbook_id: { type: String, required: true },
 });
 
 export default mongoose.model<bookingInt>('bookings', bookingSchema);
