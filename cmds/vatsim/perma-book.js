@@ -33,7 +33,7 @@ class SetPermaBookCommand extends discord_js_commando_1.Command {
         const guildID = message.guild.id;
         let res = await axios_1.default.create({
             headers: config_json_1.localAPIheaders,
-            baseURL: 'https://api.veuroexpress.org:5000'
+            baseURL: 'https://api.veuroexpress.org:2087'
         }).get('/v1/bookings');
         let bookingsText = `**Список УВД бронирований в ЗЦ Ростов**\nДанные от ${moment_1.default(new Date()).utc().format('DD.MM.YYYY | HH:mm:ss')} Z\n\n`;
         if (res.data.bookings) {
@@ -42,8 +42,14 @@ class SetPermaBookCommand extends discord_js_commando_1.Command {
                 const thisATC = await authSchema_1.default.findOne({
                     cid: book.cid
                 });
-                let VATmember = await axios_1.default.get(`https://api.vatsim.net/api/ratings/${book.cid}/`);
-                bookingsText += thisATC ? `${book.ver} | ${thisATC?.full_vatsim_data.name_first} ${thisATC?.full_vatsim_data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n` : `${book.ver} | ${VATmember.data.name_first} ${VATmember.data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+                if (thisATC?.dataType === 'old') {
+                    //@ts-ignore
+                    bookingsText += thisATC ? `${book.ver} | ${thisATC?.full_vatsim_data.name_first} ${thisATC?.full_vatsim_data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n` : `${book.ver} | ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+                }
+                else {
+                    //@ts-ignore
+                    bookingsText += thisATC ? `${book.ver} | ${thisATC?.full_vatsim_data.personal.name_first} ${thisATC?.full_vatsim_data.personal.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n` : `${book.ver} | ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+                }
             }
             bookingsText += '```';
         }

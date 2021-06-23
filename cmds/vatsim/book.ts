@@ -53,7 +53,7 @@ export default class BookCommand extends Command {
 
     const apiInstance = axios.create({
       headers: localAPIheaders,
-      baseURL: 'https://api.veuroexpress.org:5000'
+      baseURL: 'https://api.veuroexpress.org:2087'
     });
 
     switch (args.action) {

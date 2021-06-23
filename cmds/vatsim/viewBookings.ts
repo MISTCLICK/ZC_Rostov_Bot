@@ -34,7 +34,7 @@ export default class ViewBooks extends Command {
   async run(message: CommandoMessage) {
     let res = await axios.create({
       headers: localAPIheaders,
-      baseURL: 'https://api.veuroexpress.org:5000'
+      baseURL: 'https://api.veuroexpress.org:2087'
     }).get('/v1/bookings');
 
     let bookingsText = '**Список УВД бронирований в ЗЦ Ростов**\n\n';
@@ -45,8 +45,13 @@ export default class ViewBooks extends Command {
         const thisATC = await authScript.findOne({
           cid: book.cid
         });
-        let VATmember = await axios.get<any, AxiosResponse<vatsimData>>(`https://api.vatsim.net/api/ratings/${book.cid}/`);
-        bookingsText += thisATC ? `${book.ver} | ${thisATC?.full_vatsim_data.name_first} ${thisATC?.full_vatsim_data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n` : `${book.ver} | ${VATmember.data.name_first} ${VATmember.data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+        if (thisATC?.dataType === 'old') {
+          //@ts-ignore
+          bookingsText += thisATC ? `${book.ver} | ${thisATC?.full_vatsim_data.name_first} ${thisATC?.full_vatsim_data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n` : `${book.ver} | ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+        } else {
+          //@ts-ignore
+          bookingsText += thisATC ? `${book.ver} | ${thisATC?.full_vatsim_data.personal.name_first} ${thisATC?.full_vatsim_data.personal.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n` : `${book.ver} | ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+        }
       }
       bookingsText += '```';
     } else {

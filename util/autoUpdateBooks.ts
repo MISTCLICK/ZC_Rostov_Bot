@@ -41,7 +41,7 @@ export default async function updateBooks(client: CommandoClient) {
 
       let res = await axios.create({
         headers: localAPIheaders,
-        baseURL: 'https://api.veuroexpress.org:5000'
+        baseURL: 'https://api.veuroexpress.org:2087'
       }).get('/v1/bookings');
   
       let bookingsText = `**Список УВД бронирований в ЗЦ Ростов**\nДанные от ${moment(new Date()).utc().format('DD.MM.YYYY | HH:mm:ss')} Z\n\n`;
@@ -53,10 +53,15 @@ export default async function updateBooks(client: CommandoClient) {
             cid: book.cid
           });
           if (thisATC) {
-            bookingsText += `${book.ver} | ${thisATC?.full_vatsim_data.name_first} ${thisATC?.full_vatsim_data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+            if (thisATC?.dataType === 'old') {
+              //@ts-ignore
+              bookingsText += `${book.ver} | ${thisATC?.full_vatsim_data.name_first} ${thisATC?.full_vatsim_data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+            } else {
+              //@ts-ignore
+              bookingsText += `${book.ver} | ${thisATC?.full_vatsim_data.personal.name_first} ${thisATC?.full_vatsim_data.personal.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+            }
           } else {
-            let VATmember = await axios.get<any, AxiosResponse<vatsimData>>(`https://api.vatsim.net/api/ratings/${book.cid}/`);
-            bookingsText += `${book.ver} | ${VATmember.data.name_first} ${VATmember.data.name_last} ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
+            bookingsText += `${book.ver} | ${book.cid} | ${book.pos} | ${book.from} | ${book.till}\n`;
           }
           
         }

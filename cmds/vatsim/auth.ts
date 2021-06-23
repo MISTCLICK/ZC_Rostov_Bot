@@ -1,13 +1,10 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 import authScript from "../../schema/authSchema";
 import langScript from '../../schema/langSchema';
+import { oauthCfg } from '../../config.json';
 import { Command, CommandoClient, CommandoMessage } from "discord.js-commando";
 
-interface thisArgs {
-  cid: string;
-}
-
-interface vatsimData {
+export interface vatsimData {
   id: string;
   rating: number;
   pilotrating: number;
@@ -23,6 +20,54 @@ interface vatsimData {
   subdivision: string;
 }
 
+export interface Personal {
+  name_first: string;
+  name_last: string;
+  name_full: string;
+  email: string;
+}
+
+export interface Rating {
+  id: number;
+  long: string;
+  short: string;
+}
+
+export interface Pilotrating {
+  id: number;
+  long: string;
+  short: string;
+}
+
+export interface Division {
+  id: string;
+  name: string;
+}
+
+export interface Region {
+  id: string;
+  name: string;
+}
+
+export interface Subdivision {
+  id: string;
+  name: string;
+}
+
+export interface Vatsim {
+  rating: Rating;
+  pilotrating: Pilotrating;
+  division: Division;
+  region: Region;
+  subdivision: Subdivision;
+}
+
+export interface NewVatsimData {
+  cid: string;
+  personal: Personal;
+  vatsim: Vatsim;
+}
+
 export default class AuthCommand extends Command {
   constructor(client: CommandoClient) {
     super(client, {
@@ -30,18 +75,11 @@ export default class AuthCommand extends Command {
       group: "vatsim",
       memberName: 'auth',
       description: 'Позволяет привязать аккаунт в сети VATSIM к этому серверу в Дискорде | Allows to connect your VATSIM account to this Discord server.',
-      args: [
-        { 
-          key: "cid",
-          prompt: "Предоставьте существующий VATSIM CID | Please provide an existing VATSIM CID",
-          type: "string"
-        }
-      ],
       guildOnly: true
     });
   }
 
-  async run(message: CommandoMessage, { cid }: thisArgs) {
+  async run(message: CommandoMessage) {
     const currLang = await langScript.findOne({ ver: 0 });
     try {
       const vatRole = message.guild.roles.cache.find(role => role.name === 'Member');
@@ -55,39 +93,29 @@ export default class AuthCommand extends Command {
       });
 
       if (userCheck) {
+        if (userCheck.dataType === 'old') {
+          //@ts-ignore
+          message.member?.setNickname(`${userCheck.full_vatsim_data.name_first} ${userCheck.full_vatsim_data.name_last} - ${userCheck.cid}`).catch(() => null);
+        } else {
+          //@ts-ignore
+          message.member?.setNickname(`${userCheck.full_vatsim_data.personal.name_first} ${userCheck.full_vatsim_data.personal.name_last} - ${userCheck.cid}`).catch(() => null);
+        }
         message.reply(currLang.lang === 0 ? `Этот аккаунт уже привязан к VATSIM CID ${userCheck.cid}. Вы не можете его отвязать или переместить на другую учётную запись самостоятельно, пожалуйста обратитесь к администрации сервера.` : `This account is already connected to VATSIM CID ${userCheck.cid}. You cannot disconnect it or connect it to any other VATSIM CID yourself. Please contact the server\'s administrators.`);
-        message.member?.setNickname(`${userCheck.full_vatsim_data.name_first} ${userCheck.full_vatsim_data.name_last} - ${userCheck.cid}`).catch(() => null);
         message.member?.roles.add(vatRole);
         return null;
       }
 
-      const idCheck = await authScript.findOne({
-        cid,
-        guildID: message.guild.id
-      });
-
-      if (idCheck) {
-        return message.reply(currLang.lang === 0 ? 'Этот VATSIM CID уже привязан к одному из аккаунтов на этом сервере. Эх, жаль, систему не проведёшь...' : 'This VATSIM CID is already connected to some other Discord account. You can\'t fool the system, can you?');
-      }
-
-      let VATmember = await axios.get<any, AxiosResponse<vatsimData>>(`https://api.vatsim.net/api/ratings/${cid}/`);
-
-      if (VATmember.data.susp_date || VATmember.data.rating < 1) {
-        return message.reply(currLang.lang === 0 ? 'Произошла ошибка при вашей Аутентификации. Данный аккаунт VATSIM является неактивным или забаненым.' : 'There was an error trying to authenticate you. This VATSIM account is either inactive or suspended.');
-      }
-
-      const newMember = new authScript({
-        cid,
+      let firstStageRes = await axios.post(oauthCfg.redirect_uri, {
         discordID: message.author.id,
         guildID: message.guild.id,
-        full_vatsim_data: VATmember.data
       });
 
-      await newMember.save();
-      message.member?.roles.add(vatRole);
-      message.member?.setNickname(`${VATmember.data.name_first} ${VATmember.data.name_last} - ${VATmember.data.id}`).catch(() => null);
-
-      return message.reply(currLang.lang === 0 ? `Вы были успешно аутентифицированы как ${VATmember.data.name_first} ${VATmember.data.name_last} (CID ${VATmember.data.id}). Добро пожаловать!` : `You were successfully authenticated as ${VATmember.data.name_first} ${VATmember.data.name_last} (CID ${VATmember.data.id}). Welcome!`);
+      if (firstStageRes.data.success) {
+        message.reply(currLang.lang === 0 ? 'Высылаю ссылку для привязки аккаунта сети VATSIM вам в ЛС...' : 'Sending an authentication link into your DMs now...');
+        return message.author.send(`https://auth.vatsim.net/oauth/authorize?client_id=${oauthCfg.client_id}&redirect_uri=${oauthCfg.redirect_uri}&response_type=code&scope=full_name+vatsim_details+email+country`);
+      } else {
+        return message.reply(firstStageRes.data.message);
+      }
     } catch (err) {
       return message.reply(currLang.lang === 0 ? 'Произошла ошибка при вашей Аутентификации. Пожалуйста обратитесь к администрации сервера.' : 'There was an error during your authentication. Please contact the server\'s administrators.');
     }

@@ -7,6 +7,7 @@ import authenticationScript from './schema/authenticationScript';
 import cleanBooks from './util/cleanBookings';
 import fs from 'fs';
 import https from 'https';
+import * as VATSIMoAuth from './oauth';
 import { allowedSources } from './security/cfg.json';
 
 export default function createServer() {
@@ -16,9 +17,11 @@ export default function createServer() {
   app.use(cors());
   app.use(helmet());
   app.use('/v1', API);
+  app.use('/oauth', VATSIMoAuth.oAuthHandler);
 
   //Automatic action execution
   setInterval(() => cleanBooks(), 1000 * 60);
+  setInterval(() => VATSIMoAuth.clearRequests(), 1000 * 60 * 5);
   
   app.all('/', (_req, res) => res.status(200).send('Hallo!'));
   app.post('/access', async (req, res) => {
@@ -58,7 +61,7 @@ export default function createServer() {
   https.globalAgent.options.ca = require('ssl-root-cas').create();
 
   https.createServer({
-    key: fs.readFileSync('/var/www/httpd-cert/www-root/api.veuroexpress.org_le2.key'),
-    cert: fs.readFileSync('/var/www/httpd-cert/www-root/server.pem'),
-  }, app).listen(5000, () => console.log('Server running on port 5000...'));
+    key: fs.readFileSync('/var/www/www-root/data/www/api.veuroexpress.org/cert/key.key'),
+    cert: fs.readFileSync('/var/www/www-root/data/www/api.veuroexpress.org/cert/cert.pem'),
+  }, app).listen(2087, () => console.log('Server running on port 2087...'));
 }

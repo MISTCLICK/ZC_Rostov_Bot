@@ -51,7 +51,7 @@ class BookCommand extends discord_js_commando_1.Command {
         });
         const apiInstance = axios_1.default.create({
             headers: config_json_1.localAPIheaders,
-            baseURL: 'https://api.veuroexpress.org:5000'
+            baseURL: 'https://api.veuroexpress.org:2087'
         });
         switch (args.action) {
             case "add":
