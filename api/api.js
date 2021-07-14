@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const validation_1 = __importDefault(require("./security/validation"));
 const bookingScript_1 = __importDefault(require("./schema/bookingScript"));
+const authSchema_1 = __importDefault(require("../schema/authSchema"));
 const axios_1 = __importDefault(require("axios"));
 let API = express_1.default.Router();
 API.all('*', async (req, res, next) => {
@@ -56,12 +57,13 @@ API.post('/bookings', async (req, res) => {
     let myArr = [];
     (await bookingScript_1.default.find()).forEach(booking => myArr.push(booking.ver));
     let thisBookingVer = myArr.length > 0 ? Math.max.apply(null, myArr) + 1 : 1;
-    let VATSIMmemberData = await axios_1.default.get(`https://api.vatsim.net/api/ratings/${cid}`);
+    let VATSIMmemberData = await authSchema_1.default.findOne({ cid });
     let bookingDate = from.split(' ');
     let bookingDateData = bookingDate[0].split('.');
     let bookingStartTime = bookingDate[1].split(':');
     let bookingEndTime = till.split(' ')[1].split(':');
-    let vatbookData = await axios_1.default.post(`http://vatbook.euroutepro.com/atc/insert.asp?Local_URL=noredir&Local_ID=${thisBookingVer}&b_day=${bookingDateData[0]}&b_month=${bookingDateData[1]}&b_year=${bookingDateData[2]}&Controller=${VATSIMmemberData.data.name_first} ${VATSIMmemberData.data.name_last}&Position=${pos}&sTime=${bookingStartTime[0] + bookingStartTime[1]}&eTime=${bookingEndTime[0] + bookingEndTime[1]}&T=0&E=0&voice=1&cid=${cid}`);
+    //@ts-ignore
+    let vatbookData = await axios_1.default.post(`http://vatbook.euroutepro.com/atc/insert.asp?Local_URL=noredir&Local_ID=${thisBookingVer}&b_day=${bookingDateData[0]}&b_month=${bookingDateData[1]}&b_year=${bookingDateData[2]}&Controller=${VATSIMmemberData?.dataType === 'old' ? VATSIMmemberData?.full_vatsim_data.name_first : VATSIMmemberData?.full_vatsim_data.personal.name_first} ${VATSIMmemberData?.dataType === 'old' ? VATSIMmemberData?.full_vatsim_data.name_last : VATSIMmemberData?.full_vatsim_data.personal.name_last}&Position=${pos}&sTime=${bookingStartTime[0] + bookingStartTime[1]}&eTime=${bookingEndTime[0] + bookingEndTime[1]}&T=0&E=0&voice=1&cid=${cid}`);
     const newBooking = new bookingScript_1.default({
         cid,
         pos,

@@ -1,6 +1,7 @@
 import express from 'express';
 import validate from './security/validation';
 import bookingScript from './schema/bookingScript';
+import authScript from '../schema/authSchema';
 import axios from 'axios';
 
 let API = express.Router();
@@ -60,13 +61,14 @@ API.post('/bookings', async (req, res) => {
   let myArr: any[] = [];
   (await bookingScript.find()).forEach(booking => myArr.push(booking.ver));
   let thisBookingVer = myArr.length > 0 ? Math.max.apply(null, myArr) + 1 : 1;
-  let VATSIMmemberData = await axios.get(`https://api.vatsim.net/api/ratings/${cid}`);
+  let VATSIMmemberData = await authScript.findOne({ cid });
   let bookingDate = from.split(' ');
   let bookingDateData = bookingDate[0].split('.');
   let bookingStartTime = bookingDate[1].split(':');
   let bookingEndTime = till.split(' ')[1].split(':');
 
-  let vatbookData = await axios.post(`http://vatbook.euroutepro.com/atc/insert.asp?Local_URL=noredir&Local_ID=${thisBookingVer}&b_day=${bookingDateData[0]}&b_month=${bookingDateData[1]}&b_year=${bookingDateData[2]}&Controller=${VATSIMmemberData.data.name_first} ${VATSIMmemberData.data.name_last}&Position=${pos}&sTime=${bookingStartTime[0] + bookingStartTime[1]}&eTime=${bookingEndTime[0] + bookingEndTime[1]}&T=0&E=0&voice=1&cid=${cid}`);
+  //@ts-ignore
+  let vatbookData = await axios.post(`http://vatbook.euroutepro.com/atc/insert.asp?Local_URL=noredir&Local_ID=${thisBookingVer}&b_day=${bookingDateData[0]}&b_month=${bookingDateData[1]}&b_year=${bookingDateData[2]}&Controller=${VATSIMmemberData?.dataType === 'old' ? VATSIMmemberData?.full_vatsim_data.name_first : VATSIMmemberData?.full_vatsim_data.personal.name_first} ${VATSIMmemberData?.dataType === 'old' ? VATSIMmemberData?.full_vatsim_data.name_last : VATSIMmemberData?.full_vatsim_data.personal.name_last}&Position=${pos}&sTime=${bookingStartTime[0] + bookingStartTime[1]}&eTime=${bookingEndTime[0] + bookingEndTime[1]}&T=0&E=0&voice=1&cid=${cid}`);
 
   const newBooking = new bookingScript({
     cid,

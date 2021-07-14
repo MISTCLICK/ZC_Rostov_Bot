@@ -134,11 +134,29 @@ oAuthHandler.get('/', async (req, res) => {
                 message: 'Your account is either suspended or inactive. Please contact VATSIM Membership department.'
             });
         }
+        const existingUserCheck = await authSchema_1.default.findOne({ cid: vatsimUserData.cid });
+        if (existingUserCheck) {
+            if (existingUserCheck.discordID !== pendingRequests[0].discordUserID) {
+                return res.status(200).json({
+                    success: false,
+                    message: 'This VATSIM Account is already connected to another Discord account. Please contact the server\'s administrators.'
+                });
+            }
+            else {
+                requestedMember?.roles.add(vatRole);
+                requestedMember?.setNickname(`${vatsimUserData.personal.name_first} ${vatsimUserData.personal.name_last} - ${vatsimUserData.cid}`).catch(() => null);
+                await pending_1.default.findOneAndRemove({
+                    discordUserID: pendingRequests[0].discordUserID
+                });
+                return res.redirect('https://urrv.me');
+            }
+        }
         const newMember = new authSchema_1.default({
             cid: vatsimUserData.cid,
             discordID: pendingRequests[0].discordUserID,
             guildID: pendingRequests[0].guildID,
-            full_vatsim_data: vatsimUserData
+            full_vatsim_data: vatsimUserData,
+            dataType: 'new'
         });
         await newMember.save();
         requestedMember?.roles.add(vatRole);
